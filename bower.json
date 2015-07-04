@@ -1,0 +1,39 @@
+{
+  "name": "app_seed",
+  "version": "0.0.0",
+  "authors": [
+    "philopian <pdotwdot@gmail.com>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "~2.1.4",
+    "leaflet": "~0.7.3"
+  },
+  "overrides": {
+    "leaflet": {
+      "main": [
+        "**/leaflet.js",
+        "**/leaflet.css"
+      ]
+    },
+    "leaflet-draw": {
+      "main": [
+        "**/dist/leaflet.draw.js",
+        "**/dist/leaflet.draw.css"
+      ]
+    },
+    "jwt-decode": {
+      "main": "build/jwt-decode.min.js"
+    },    
+    "crypto.js": {
+      "main": "components/sha1.js"
+    }
+  }
+}
