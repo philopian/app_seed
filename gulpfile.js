@@ -224,95 +224,93 @@ gulp.task('browser-sync-dist', ['nodemon'], function () {
 
   // NEEED TO MOLD TO THIS APP
                                         /**/
-                                        //--Frontend Test-----------------------------------------------------------------------
-                                        var karma       = require('gulp-karma');
-                                        gulp.task('test-frontend', function() {
-                                          // Be sure to return the stream
-                                          return gulp.src(frontendTestFiles)
-                                            .pipe(plumber())
-                                            .pipe(karma({
-                                              configFile: 'karma.conf.js',
-                                              action: 'watch'
-                                            }))
-                                            .on('error', function(err) {
-                                              // Make sure failed tests cause gulp to exit non-zero
-                                              console.log(err);
-                                            });
-                                        });
-                                        gulp.task('test-frontend-once', function() {
-                                          // Be sure to return the stream
-                                          return gulp.src(frontendTestFiles)
-                                            .pipe(plumber())
-                                            .pipe(karma({
-                                              configFile: 'karma.conf.js',
-                                              action: 'run'
-                                            }))
-                                            .on('error', function(err) {
-                                              // Make sure failed tests cause gulp to exit non-zero
-                                              console.log(err);
-                                            });
-                                        });
+                                        // //--Frontend Test-----------------------------------------------------------------------
+                                        // var karma       = require('gulp-karma');
+                                        // gulp.task('test-frontend', function() {
+                                        //   // Be sure to return the stream
+                                        //   return gulp.src(frontendTestFiles)
+                                        //     .pipe(plumber())
+                                        //     .pipe(karma({
+                                        //       configFile: 'karma.conf.js',
+                                        //       action: 'watch'
+                                        //     }))
+                                        //     .on('error', function(err) {
+                                        //       // Make sure failed tests cause gulp to exit non-zero
+                                        //       console.log(err);
+                                        //     });
+                                        // });
+                                        // gulp.task('test-frontend-once', function() {
+                                        //   // Be sure to return the stream
+                                        //   return gulp.src(frontendTestFiles)
+                                        //     .pipe(plumber())
+                                        //     .pipe(karma({
+                                        //       configFile: 'karma.conf.js',
+                                        //       action: 'run'
+                                        //     }))
+                                        //     .on('error', function(err) {
+                                        //       // Make sure failed tests cause gulp to exit non-zero
+                                        //       console.log(err);
+                                        //     });
+                                        // });
 
-                                        //--API Test-----------------------------------------------------------------------
-                                        var mocha = require('gulp-mocha');
-                                        gulp.task('test-backend', function () {
-                                            return gulp.src(backendTestFiles)
-                                                        .pipe(plumber())
-                                                        .pipe(mocha());
-                                        });
+                                        // //--API Test-----------------------------------------------------------------------
+                                        // var mocha = require('gulp-mocha');
+                                        // gulp.task('test-backend', function () {
+                                        //     return gulp.src(backendTestFiles)
+                                        //                 .pipe(plumber())
+                                        //                 .pipe(mocha());
+                                        // });
 
-                                        //--Backend-Test Coverage Reports---------------------------------------------------
-                                        var istanbul = require('gulp-istanbul');
-                                        gulp.task('backend-coverage', function (cb) {
-                                          gulp.src(['!server/**/*.spec.js','server/**/*.js'])
-                                            .pipe(plumber())
-                                            .pipe(istanbul()) // Covering files
-                                            .pipe(istanbul.hookRequire()) // Force `require` to return covered files
-                                            .on('finish', function () {
-                                              gulp.src(['server/**/*spec.js'])
-                                                  .pipe(mocha())
-                                                  .pipe(istanbul.writeReports({reportOpts: { 
-                                                      dir: './test_reports/unit_test_coverage/backend',
-                                                  }})) // Creating the reports after tests ran
-                                                  .on('end', function(){
-                                                    console.log(chalk.green("Backend Test Coverage Report updated"));
+                                        // //--Backend-Test Coverage Reports---------------------------------------------------
+                                        // var istanbul = require('gulp-istanbul');
+                                        // gulp.task('backend-coverage', function (cb) {
+                                        //   gulp.src(['!server/**/*.spec.js','server/**/*.js'])
+                                        //     .pipe(plumber())
+                                        //     .pipe(istanbul()) // Covering files
+                                        //     .pipe(istanbul.hookRequire()) // Force `require` to return covered files
+                                        //     .on('finish', function () {
+                                        //       gulp.src(['server/**/*spec.js'])
+                                        //           .pipe(mocha())
+                                        //           .pipe(istanbul.writeReports({reportOpts: { 
+                                        //               dir: './test_reports/unit_test_coverage/backend',
+                                        //           }})) // Creating the reports after tests ran
+                                        //           .on('end', function(){
+                                        //             console.log(chalk.green("Backend Test Coverage Report updated"));
                                                     
-                                                  });
-                                            });
-                                        });
-                                        //--Run the server to test the api--------------------------------------------------
-                                        var server = require('gulp-express');
-                                        gulp.task('test-server', function () {
-                                          var options = {
-                                            env:{
-                                              PORT:8080 
-                                            }
-                                          }
-                                          server.run(['server/server.js'],options);
-                                        });
+                                        //           });
+                                        //     });
+                                        // });
+                                        // //--Run the server to test the api--------------------------------------------------
+                                        // var server = require('gulp-express');
+                                        // gulp.task('test-server', function () {
+                                        //   var options = {
+                                        //     env:{
+                                        //       PORT:8080 
+                                        //     }
+                                        //   }
+                                        //   server.run(['server/server.js'],options);
+                                        // });
 
-                                        // open the reports when tests are all completed
-                                        var fronendReportHtml = path.join(__dirname,'test_reports/unit_test_coverage/frontend/report-html/index.html')
-                                        var backendReportHtml = path.join(__dirname,'test_reports/unit_test_coverage/backend/lcov-report/index.html')
-                                        gulp.task('open-reports', function(){
-                                          console.log(fronendReportHtml);
-                                          gulp.src([fronendReportHtml,backendReportHtml])
-                                              .pipe(wait(1500))
-                                              .pipe(open({app:openBrowserApp("osx-chrome")}));
-                                        });
-
-
-
-                                        //--ALL TESTS-----------------------------------------------------------------------
-                                        // run all test and coverange reports
-                                        var wait = require('gulp-wait');
-                                        gulp.task('test', function(testdone) {
-                                          runSequence(['test-frontend', 'test-backend','backend-coverage','open-reports','watch-tests'],
-                                                      testdone);
-                                        });
-                                        function testdone(){console.log("reports and test are done!")}
+                                        // // open the reports when tests are all completed
+                                        // var fronendReportHtml = path.join(__dirname,'test_reports/unit_test_coverage/frontend/report-html/index.html')
+                                        // var backendReportHtml = path.join(__dirname,'test_reports/unit_test_coverage/backend/lcov-report/index.html')
+                                        // gulp.task('open-reports', function(){
+                                        //   console.log(fronendReportHtml);
+                                        //   gulp.src([fronendReportHtml,backendReportHtml])
+                                        //       .pipe(wait(1500))
+                                        //       .pipe(open({app:openBrowserApp("osx-chrome")}));
+                                        // });
 
 
+
+                                        // //--ALL TESTS-----------------------------------------------------------------------
+                                        // // run all test and coverange reports
+                                        // var wait = require('gulp-wait');
+                                        // gulp.task('test', function(testdone) {
+                                        //   runSequence(['test-frontend', 'test-backend','backend-coverage','open-reports','watch-tests'],
+                                        //               testdone);
+                                        // });
+                                        // function testdone(){console.log("reports and test are done!")}
 
 
 
@@ -323,6 +321,170 @@ gulp.task('browser-sync-dist', ['nodemon'], function () {
 
 
 
+/**************************************************************************************/
+/*          BUILD DIST                                                                */
+/**************************************************************************************/
+
+var clean             = require('gulp-clean');
+var rename            = require("gulp-rename");
+var concat            = require('gulp-concat')
+var minifyCSS         = require('gulp-minify-css');
+var mainBowerFiles    = require('main-bower-files')
+var gulpFilter        = require('gulp-filter');
+var order             = require('gulp-order')
+var uglifycss         = require('gulp-uglifycss');
+var stripCssComments  = require('gulp-strip-css-comments');
+var minifyCss         = require('gulp-minify-css');
+var uglify            = require('gulp-uglify');
+// var ngAnnotate        = require('gulp-ng-annotate');
+var flatten           = require('gulp-flatten');
+var minifyHTML        = require('gulp-minify-html')
+var htmlreplace       = require('gulp-html-replace');
+// var minifyInline = require('gulp-minify-inline');
+
+//--BUILD TASKES---------------------------------------------------------------------------
+
+gulp.task('dist-clean', function() {
+    // start a new dist folder from scratch
+    return gulp.src('./dist/*')
+        .pipe(clean({force: true}));
+});
+
+gulp.task('concateCss', function() {
+  //--Create app's css (take all the .css files and make one files called ./dist/app/app.css)
+    return gulp.src([
+        './www/app/css/*.css',
+        './www/app/css/**/*.css'
+      ])
+      .pipe(concat('app.css'))
+      .pipe(minifyCSS())
+      .pipe(gulp.dest('./dist/css/'));
+});
+
+gulp.task('buildCssVendors', function() {
+    // Bower CSS - create a vendors.css file
+    var bowerOptions = {
+        paths: {
+            bowerrc: '.bowerrc'
+        }
+    }
+    var regexRemoveCss    = /\/\*!([\s\S]*?)\*\//g;
+    var cleanAddCss       = '';
+    var cssFiles = 'www/bower_components/*';
+    return gulp.src(mainBowerFiles(bowerOptions))
+                .pipe(gulpFilter('*.css'))
+                .pipe(order([
+                    'normalize.css',
+                    '*'
+                ]))
+                .pipe(concat('vendors.css'))
+                .pipe(stripCssComments())
+                .pipe(replace(regexRemoveCss, cleanAddCss))
+                .pipe(uglifycss())
+                // .pipe(minifyCss())
+                .pipe(gulp.dest('./dist/css'));
+});
+
+gulp.task('fonts', function() {
+        var fontFilter  = gulpFilter(['*.eot', '*.woff', '*.woff2', '*.svg', '*.ttf']);
+        return gulp.src(mainBowerFiles())
+        .pipe(fontFilter)
+        .pipe(flatten())
+        .pipe(gulp.dest('dist/fonts'));
+});
+
+gulp.task('buildJsVendors', function() {
+// Bower JS - create a vendors.js file
+  var jsFiles = ['/www/bower_components/*'];
+  var regexRemoveCss    = /\/\*!([\s\S]*?)\*\//g;
+  var cleanAddCss       = '';
+    return gulp.src(mainBowerFiles().concat(jsFiles))
+        .pipe(gulpFilter('*.js'))
+        .pipe(concat('vendors.js'))
+        .pipe(replace(regexRemoveCss, cleanAddCss))
+        .pipe(uglify())
+        .pipe(gulp.dest('./dist/js'));
+});
+
+
+gulp.task('buildJs', function() {
+  //--Create app's css (take all the .css files and make one files called ./dist/app/app.css)
+    return gulp.src([
+        './www/app/js/*.js',
+        './www/app/js/**/*.js'
+      ])
+      .pipe(concat('app.js'))
+      .pipe(uglify())
+      .pipe(gulp.dest('./dist/js/'));
+});
+
+gulp.task('buildIndexHtml', function() {
+// Remove the injected dependencies (Remove all the bower:css/endinject, inject:css/endinject, bower:js/endinject, inject:js/endinject)
+    var opts = {
+        comments:true,
+        spare:true,
+        empty:true
+    };
+
+    // regex pattern
+    var regexInjectTags = /<!-- inject:([\s\S]*?)<!-- endinject -->/g;
+    var regexBowerTags = /<!-- bower:([\s\S]*?)<!-- endinject -->/g
+
+    return gulp.src('./www/index.html')
+        .pipe(htmlreplace({
+            'css': ['<link rel="stylesheet" href="./css/vendors.css">','<link rel="stylesheet" href="./css/app.css">'] ,
+            'js':  ['<script src="./js/vendors.js"></script>','<script src="./js/app.js"></script>']
+        }))
+        .pipe(replace(regexInjectTags, ''))
+        .pipe(replace(regexBowerTags, ''))
+        // .pipe(minifyHTML(opts))
+        .pipe(gulp.dest('./dist/'));
+});
+
+gulp.task('copyassets',function(){
+  var files =[
+    './www/assets/*',
+    './www/assets/**/*'
+  ]
+  return gulp.src(files)
+    .pipe(gulp.dest('./dist/assets'));
+});
+
+// gulp.task('copyVendorImages',function(){
+//   var files = ['www/bower_components/**/dist/images/*']
+//   return gulp.src(files)
+//     .pipe(flatten())
+//     .pipe(gulp.dest('./dist/app/css/images'));
+// });
+
+gulp.task('copyfavicon',function(){
+  return gulp.src('favicon.ico')
+    .pipe(gulp.dest('./dist'));
+});
+
+
+//--BUILD-----------------------------------------------------------------------
+// * build-clean
+// * css base.css
+// * css app.css
+// * build vendors.css from all bower dependencies
+// * build vendors.js from all bower dependencies
+// * copy fonts from font-awesome/boostrap
+gulp.task('build', function() {
+    runSequence(
+        'dist-clean',
+        [
+            'concateCss',
+            'buildCssVendors',
+            'fonts',
+            'buildJsVendors',
+            'buildJs',
+            'copyassets',
+            'copyfavicon'
+        ],
+        'buildIndexHtml'
+        );
+});
 
 
 
@@ -336,6 +498,23 @@ gulp.task('browser-sync-dist', ['nodemon'], function () {
 /**************************************************************************************/
 /*          COMBO TASK                                                                */
 /**************************************************************************************/
-gulp.task('inject',   runSequence('cleanBowerTags','injectBowerTags','cleanClientTags','injectClientTags'));
-gulp.task('serve',    runSequence('cleanBowerTags','injectBowerTags','cleanClientTags','injectClientTags','browser-sync'));
-gulp.task('default',  runSequence('cleanBowerTags','injectBowerTags','cleanClientTags','injectClientTags'));
+gulp.task('serve',    function() {
+    runSequence('cleanBowerTags','injectBowerTags','cleanClientTags','injectClientTags','browser-sync')
+});
+gulp.task('default',  function() {
+    runSequence('cleanBowerTags','injectBowerTags','cleanClientTags','injectClientTags','browser-sync')
+});
+gulp.task('build', function() {
+    runSequence(
+        'dist-clean', [
+           'concateCss',
+            'buildCssVendors',
+            'fonts',
+            'buildJsVendors',
+            'buildJs',
+            'copyassets',
+            'copyfavicon'
+        ],
+        'buildIndexHtml'
+        );
+});
