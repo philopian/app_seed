@@ -97,6 +97,7 @@ gulp.task('cleanClientTags', function() {
 gulp.task('injectClientTags', function () {
     var filterDevContent = [
         './www/app/js/*.js',
+        '!./www/app/js/*.spec.js',
         './www/app/css/*.css'
     ];
     return gulp
@@ -117,13 +118,6 @@ gulp.task('injectClientTags', function () {
 /**************************************************************************************/
 /*          WATCH                                                                     */
 /**************************************************************************************/
-// gulp.task('watch',function(){
-//   var cssjsFiles = ['www/app/css/*.css','www/app/js/*.js'];
-//   gulp.watch(cssjsFiles,inject);
-
-// });
-
-
 
 
 
@@ -198,107 +192,6 @@ gulp.task('browser-sync', ['nodemon'], function () {
 });
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// /**************************************************************************************/
-// /*          DEV-SERVER                                                                */
-// /**************************************************************************************/
-
-// function openBrowserApp(openApp){
-//   if (openApp == "osx-chrome"){
-//     return '/Applications/Google Chrome.app';
-//   } else if (openApp == "linux-chrome"){
-//     return 'google-chrome';
-//   } else if (openApp == "windows-chrome"){
-//     return 'chrome';
-//   } else if (openApp == "osx-firefox"){
-//     return '/Applications/firefox.app';
-//   }
-// }
-// var BROWSER_SYNC_RELOAD_DELAY = 500;// we'd need a slight delay to reload browsers connected to browser-sync after restarting nodemon
-// gulp.task('nodemon', function (cb) {
-//   var called = false;
-//   return nodemon({
-//       script:serverFilePath,
-//       ext: '*.js'
-//     })
-//     .on('start', function onStart() {
-//       // ensure start only got called once
-//       if (!called) { 
-//         called = true;
-//         cb();
-//       }
-//     })
-//     .on('restart', function onRestart() {
-//       // reload connected browsers after a slight delay
-//       setTimeout(function reload() {
-//         browserSync.reload({
-//           stream: false   //
-//         });
-//       }, BROWSER_SYNC_RELOAD_DELAY);
-//     });
-// });
- 
-// gulp.task('browser-sync', ['nodemon'], function () {
-//   // for more browser-sync config options: http://www.browsersync.io/docs/options/
-//   browserSync.init({
- 
-//     // watch the following files; changes will be injected (css & images) or cause browser to refresh
-//     files: watchFiles,
- 
-//     // informs browser-sync to proxy our expressjs app which would run at the following location
-//     proxy: 'http://localhost:8080',
- 
-//     // informs browser-sync to use the following port for the proxied app
-//     // notice that the default port is 3000, which would clash with our expressjs
-//     // port: 4000,
-
- 
-//     // Stop the browser from automatically opening
-//     open: false,  // "local", "external", "ui", "tunnel"
-
-//     // open the proxied app in chrome
-//     // browser: ['google chrome']
-//     // browser: ["google chrome", "firefox"]
-
-//     // Don't show any notifications in the browser.
-//     notify: false // will remove the small notification message in the browser
-
-//     // Wait for 2 seconds before any browsers should try to inject/reload a file.
-//     //reloadDelay: 2000
-//   });
-// });
-// gulp.task('browser-sync-open', ['nodemon'], function () {
-//   browserSync.init({
-//     files: watchFiles,
-//     proxy: 'http://localhost:8080',
-//     browser: openBrowserApp("osx-chrome"),
-//     open: true,  // "local", "external", "ui", "tunnel"
-//     notify: false // will remove the small notification message in the browser
-//   });
-// });
-// gulp.task('browser-sync-dist', ['nodemon'], function () {
-//   browserSync.init({
-//     files: watchDistFiles,
-//     proxy: 'http://localhost:8080',
-//     browser: openBrowserApp("osx-chrome"),
-//     open: true,  // "local", "external", "ui", "tunnel"
-//     notify: false // will remove the small notification message in the browser
-//   });
-// });
 
 
 
