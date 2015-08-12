@@ -1,17 +1,17 @@
-var gulp = require('gulp')
-var fs   = require("fs");
+var gulp = require('gulp');
+var fs   = require('fs');
+var path = require('path');
 
-//--GULP PLUGINS----------------------------------------------------------------------
-var mainBowerFiles  = require('main-bower-files')
+
+/**************************************************************************************/
+/*          GULP PLUGINS                                                              */
+/**************************************************************************************/
+var mainBowerFiles  = require('main-bower-files');
 var inject          = require("gulp-inject");
 var replace         = require('gulp-replace');
 var chalk           = require('chalk');
 var runSequence     = require('run-sequence');
-// var notify          = require("gulp-notify");
-// var print           = require("gulp-print");
-// var globby          = require('globby');
 var nodemon         = require('gulp-nodemon');
-// var livereload      = require('gulp-livereload');
 var open            = require('gulp-open');
 var plumber         = require('gulp-plumber');
 var browserSync     = require('browser-sync');
@@ -26,13 +26,24 @@ var reload          = browserSync.reload;
 /**************************************************************************************/
 /*          FILE PATHS                                                                */
 /**************************************************************************************/
-var serverFilePath = './server/server.js;'
-var watchFiles = [
+var indexFile = './www/index.html';
+var watchAllFrontendFiles = [
   'www/app/js/*.js',
   'www/app/css/*.css',
   'www/app/**/*.css',
-  'www/app/*.html'
+  'www/app/*.html',
+  'www/*.html'
 ];
+var serverDirPath   = path.join(__dirname,"server");
+var serverFilePath  = path.join(serverDirPath,'server.js');
+var backendFiles = [
+  path.join(serverDirPath,'db/*.js'),
+  path.join(serverDirPath,'middleware/*.js'),
+  path.join(serverDirPath,'models/*.js'),
+  path.join(serverDirPath,'routes/*.js'),
+  path.join(serverDirPath,'services/*.js'),
+  path.join(serverDirPath,'*.js'),
+]
 
 
 
@@ -53,7 +64,7 @@ gulp.task('cleanBowerTags', function() {
     var cleanBowerCss   = "<!-- bower:css -->\n\t<!-- endinject -->";
     var cleanBowerJs    = "<!-- bower:js -->\n<!-- endinject -->";
     return gulp
-            .src(['./www/index.html'])
+            .src([indexFile])
             .pipe(plumber())
             .pipe(replace(regexBowerCss, cleanBowerCss))
             .pipe(replace(regexBowerJs, cleanBowerJs))
@@ -61,7 +72,7 @@ gulp.task('cleanBowerTags', function() {
 });
 gulp.task('injectBowerTags', function () {
     return gulp
-            .src('./www/index.html')
+            .src(indexFile)
             .pipe(plumber())
             .pipe(inject(gulp.src(mainBowerFiles({}), {read: false}),  {name: 'bower'}))
             .pipe(replace('/www/', ''))
@@ -78,7 +89,7 @@ gulp.task('cleanClientTags', function() {
     var cleanInjectJs   = "<!-- inject:js -->\n\<!-- endinject -->";
 
     return gulp
-            .src(['./www/index.html'])
+            .src([indexFile])
             .pipe(replace(regexInjectCss, cleanInjectCss))
             .pipe(replace(regexInjectJs, cleanInjectJs))
             .pipe(gulp.dest('./www/'));
@@ -89,7 +100,7 @@ gulp.task('injectClientTags', function () {
         './www/app/css/*.css'
     ];
     return gulp
-            .src('./www/index.html')
+            .src(indexFile)
             .pipe(plumber())
             .pipe(inject(gulp.src(filterDevContent, {read: false})))
             .pipe(replace('/www/', ''))
@@ -106,15 +117,11 @@ gulp.task('injectClientTags', function () {
 /**************************************************************************************/
 /*          WATCH                                                                     */
 /**************************************************************************************/
-gulp.task('watch',function(){
-  var cssjsFiles = ['www/app/css/*.css','www/app/js/*.js'];
-  gulp.watch(cssjsFiles,inject);
+// gulp.task('watch',function(){
+//   var cssjsFiles = ['www/app/css/*.css','www/app/js/*.js'];
+//   gulp.watch(cssjsFiles,inject);
 
-});
-
-
-
-
+// });
 
 
 
@@ -137,19 +144,22 @@ function openBrowserApp(openApp){
     return '/Applications/firefox.app';
   }
 }
-var BROWSER_SYNC_RELOAD_DELAY = 500;// we'd need a slight delay to reload browsers connected to browser-sync after restarting nodemon
+// we'd need a slight delay to reload browsers, connected to browser-sync after restarting nodemon
+var BROWSER_SYNC_RELOAD_DELAY = 500;
 gulp.task('nodemon', function (cb) {
   var called = false;
   return nodemon({
-      script:serverFilePath,
-      ext: '*.js'
-    })
+
+    // nodemon our expressjs server
+    script: 'server/server.js',
+
+    // watch core server file(s) that require server restart on change
+    watch: backendFiles
+  })
     .on('start', function onStart() {
       // ensure start only got called once
-      if (!called) { 
-        called = true;
-        cb();
-      }
+      if (!called) { cb(); }
+      called = true;
     })
     .on('restart', function onRestart() {
       // reload connected browsers after a slight delay
@@ -160,54 +170,135 @@ gulp.task('nodemon', function (cb) {
       }, BROWSER_SYNC_RELOAD_DELAY);
     });
 });
- 
+
 gulp.task('browser-sync', ['nodemon'], function () {
+
   // for more browser-sync config options: http://www.browsersync.io/docs/options/
   browserSync.init({
- 
+
     // watch the following files; changes will be injected (css & images) or cause browser to refresh
-    files: watchFiles,
- 
+    files: watchAllFrontendFiles,
+
     // informs browser-sync to proxy our expressjs app which would run at the following location
     proxy: 'http://localhost:8080',
- 
+
+    // Stop the browser from automatically opening
+    open: false,  // "local", "external", "ui", "tunnel"
+
+    // Don't show any notifications in the browser.
+    notify: false, // will remove the small notification message in the browser
+
     // informs browser-sync to use the following port for the proxied app
     // notice that the default port is 3000, which would clash with our expressjs
     // port: 4000,
 
- 
-    // Stop the browser from automatically opening
-    open: false,  // "local", "external", "ui", "tunnel"
-
     // open the proxied app in chrome
-    // browser: ['google chrome']
-    // browser: ["google chrome", "firefox"]
+    browser: openBrowserApp("osx-chrome")
+  });
+});
 
-    // Don't show any notifications in the browser.
-    notify: false // will remove the small notification message in the browser
 
-    // Wait for 2 seconds before any browsers should try to inject/reload a file.
-    //reloadDelay: 2000
-  });
-});
-gulp.task('browser-sync-open', ['nodemon'], function () {
-  browserSync.init({
-    files: watchFiles,
-    proxy: 'http://localhost:8080',
-    browser: openBrowserApp("osx-chrome"),
-    open: true,  // "local", "external", "ui", "tunnel"
-    notify: false // will remove the small notification message in the browser
-  });
-});
-gulp.task('browser-sync-dist', ['nodemon'], function () {
-  browserSync.init({
-    files: watchDistFiles,
-    proxy: 'http://localhost:8080',
-    browser: openBrowserApp("osx-chrome"),
-    open: true,  // "local", "external", "ui", "tunnel"
-    notify: false // will remove the small notification message in the browser
-  });
-});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// /**************************************************************************************/
+// /*          DEV-SERVER                                                                */
+// /**************************************************************************************/
+
+// function openBrowserApp(openApp){
+//   if (openApp == "osx-chrome"){
+//     return '/Applications/Google Chrome.app';
+//   } else if (openApp == "linux-chrome"){
+//     return 'google-chrome';
+//   } else if (openApp == "windows-chrome"){
+//     return 'chrome';
+//   } else if (openApp == "osx-firefox"){
+//     return '/Applications/firefox.app';
+//   }
+// }
+// var BROWSER_SYNC_RELOAD_DELAY = 500;// we'd need a slight delay to reload browsers connected to browser-sync after restarting nodemon
+// gulp.task('nodemon', function (cb) {
+//   var called = false;
+//   return nodemon({
+//       script:serverFilePath,
+//       ext: '*.js'
+//     })
+//     .on('start', function onStart() {
+//       // ensure start only got called once
+//       if (!called) { 
+//         called = true;
+//         cb();
+//       }
+//     })
+//     .on('restart', function onRestart() {
+//       // reload connected browsers after a slight delay
+//       setTimeout(function reload() {
+//         browserSync.reload({
+//           stream: false   //
+//         });
+//       }, BROWSER_SYNC_RELOAD_DELAY);
+//     });
+// });
+ 
+// gulp.task('browser-sync', ['nodemon'], function () {
+//   // for more browser-sync config options: http://www.browsersync.io/docs/options/
+//   browserSync.init({
+ 
+//     // watch the following files; changes will be injected (css & images) or cause browser to refresh
+//     files: watchFiles,
+ 
+//     // informs browser-sync to proxy our expressjs app which would run at the following location
+//     proxy: 'http://localhost:8080',
+ 
+//     // informs browser-sync to use the following port for the proxied app
+//     // notice that the default port is 3000, which would clash with our expressjs
+//     // port: 4000,
+
+ 
+//     // Stop the browser from automatically opening
+//     open: false,  // "local", "external", "ui", "tunnel"
+
+//     // open the proxied app in chrome
+//     // browser: ['google chrome']
+//     // browser: ["google chrome", "firefox"]
+
+//     // Don't show any notifications in the browser.
+//     notify: false // will remove the small notification message in the browser
+
+//     // Wait for 2 seconds before any browsers should try to inject/reload a file.
+//     //reloadDelay: 2000
+//   });
+// });
+// gulp.task('browser-sync-open', ['nodemon'], function () {
+//   browserSync.init({
+//     files: watchFiles,
+//     proxy: 'http://localhost:8080',
+//     browser: openBrowserApp("osx-chrome"),
+//     open: true,  // "local", "external", "ui", "tunnel"
+//     notify: false // will remove the small notification message in the browser
+//   });
+// });
+// gulp.task('browser-sync-dist', ['nodemon'], function () {
+//   browserSync.init({
+//     files: watchDistFiles,
+//     proxy: 'http://localhost:8080',
+//     browser: openBrowserApp("osx-chrome"),
+//     open: true,  // "local", "external", "ui", "tunnel"
+//     notify: false // will remove the small notification message in the browser
+//   });
+// });
 
 
 
@@ -336,10 +427,10 @@ var uglifycss         = require('gulp-uglifycss');
 var stripCssComments  = require('gulp-strip-css-comments');
 var minifyCss         = require('gulp-minify-css');
 var uglify            = require('gulp-uglify');
-// var ngAnnotate        = require('gulp-ng-annotate');
 var flatten           = require('gulp-flatten');
 var minifyHTML        = require('gulp-minify-html')
 var htmlreplace       = require('gulp-html-replace');
+// var ngAnnotate        = require('gulp-ng-annotate');
 // var minifyInline = require('gulp-minify-inline');
 
 //--BUILD TASKES---------------------------------------------------------------------------
@@ -430,7 +521,7 @@ gulp.task('buildIndexHtml', function() {
     var regexInjectTags = /<!-- inject:([\s\S]*?)<!-- endinject -->/g;
     var regexBowerTags = /<!-- bower:([\s\S]*?)<!-- endinject -->/g
 
-    return gulp.src('./www/index.html')
+    return gulp.src(indexFile)
         .pipe(htmlreplace({
             'css': ['<link rel="stylesheet" href="./css/vendors.css">','<link rel="stylesheet" href="./css/app.css">'] ,
             'js':  ['<script src="./js/vendors.js"></script>','<script src="./js/app.js"></script>']
