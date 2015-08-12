@@ -26,25 +26,46 @@ var reload          = browserSync.reload;
 /**************************************************************************************/
 /*          FILE PATHS                                                                */
 /**************************************************************************************/
-var indexFile = './www/index.html';
-var watchAllFrontendFiles = [
-  'www/app/js/*.js',
-  'www/app/css/*.css',
-  'www/app/**/*.css',
-  'www/app/*.html',
-  'www/*.html'
-];
-var serverDirPath   = path.join(__dirname,"server");
-var serverFilePath  = path.join(serverDirPath,'server.js');
-var backendFiles = [
-  path.join(serverDirPath,'db/*.js'),
-  path.join(serverDirPath,'middleware/*.js'),
-  path.join(serverDirPath,'models/*.js'),
-  path.join(serverDirPath,'routes/*.js'),
-  path.join(serverDirPath,'services/*.js'),
-  path.join(serverDirPath,'*.js'),
-]
+var gulpConfig              = require('./gulp.config.js');
+var indexFile               = './www/index.html';
+var watchAllFrontendFiles   = gulpConfig.frontend.files;
+var webAppPath              = path.join('www','app');
+var frontendTestFiles       = gulpConfig.frontend.frontendTestFiles
+var serverDirPath           = path.join(__dirname,"server");
+var serverFilePath          = path.join(serverDirPath,'server.js');
+var backendFiles            = gulpConfig.backend.files;
 
+console.log(indexFile);
+
+///////////////////////////////////////////////////////////////////////////////////////////
+// var indexFile = './www/index.html';
+// var watchAllFrontendFiles = [
+//   'www/app/js/*.js',
+//   'www/app/css/*.css',
+//   'www/app/**/*.css',
+//   'www/app/*.html',
+//   'www/*.html'
+// ];
+// var webAppPath      = path.join('www','app');
+// var frontendTestFiles = [
+//     path.join(webAppPath, '*.js'),
+//     path.join(webAppPath, '**/*.js'),
+//     path.join(webAppPath, '*.html'),
+//     path.join(webAppPath, '**/*.html'),    
+// ];
+
+
+// var serverDirPath   = path.join(__dirname,"server");
+// var serverFilePath  = path.join(serverDirPath,'server.js');
+// var backendFiles = [
+//   path.join(serverDirPath,'db/*.js'),
+//   path.join(serverDirPath,'middleware/*.js'),
+//   path.join(serverDirPath,'models/*.js'),
+//   path.join(serverDirPath,'routes/*.js'),
+//   path.join(serverDirPath,'services/*.js'),
+//   path.join(serverDirPath,'*.js'),
+// ]
+///////////////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -64,7 +85,7 @@ gulp.task('cleanBowerTags', function() {
     var cleanBowerCss   = "<!-- bower:css -->\n\t<!-- endinject -->";
     var cleanBowerJs    = "<!-- bower:js -->\n<!-- endinject -->";
     return gulp
-            .src([indexFile])
+            .src(indexFile)
             .pipe(plumber())
             .pipe(replace(regexBowerCss, cleanBowerCss))
             .pipe(replace(regexBowerJs, cleanBowerJs))
@@ -208,42 +229,35 @@ gulp.task('browser-sync', ['nodemon'], function () {
 
   // NEEED TO MOLD TO THIS APP
                                         /**/
-                                        // //--Frontend Test-----------------------------------------------------------------------
-                                        // var karma       = require('gulp-karma');
-                                        // gulp.task('test-frontend', function() {
-                                        //   // Be sure to return the stream
-                                        //   return gulp.src(frontendTestFiles)
-                                        //     .pipe(plumber())
-                                        //     .pipe(karma({
-                                        //       configFile: 'karma.conf.js',
-                                        //       action: 'watch'
-                                        //     }))
-                                        //     .on('error', function(err) {
-                                        //       // Make sure failed tests cause gulp to exit non-zero
-                                        //       console.log(err);
-                                        //     });
-                                        // });
-                                        // gulp.task('test-frontend-once', function() {
-                                        //   // Be sure to return the stream
-                                        //   return gulp.src(frontendTestFiles)
-                                        //     .pipe(plumber())
-                                        //     .pipe(karma({
-                                        //       configFile: 'karma.conf.js',
-                                        //       action: 'run'
-                                        //     }))
-                                        //     .on('error', function(err) {
-                                        //       // Make sure failed tests cause gulp to exit non-zero
-                                        //       console.log(err);
-                                        //     });
-                                        // });
+//--Frontend Test-----------------------------------------------------------------------
+var Server      = require('karma').Server;
+gulp.task('test-frontend', function(done) {
+    new Server({
+    configFile: __dirname + '/karma.conf.js',
+        singleRun: false
+    }, done)
+    .start();
+});
+gulp.task('test-frontend-once', function(done) {
+    new Server({
+    configFile: __dirname + '/karma.conf.js',
+        singleRun: true
+    }, done)
+    .start();
+});
 
-                                        // //--API Test-----------------------------------------------------------------------
-                                        // var mocha = require('gulp-mocha');
-                                        // gulp.task('test-backend', function () {
-                                        //     return gulp.src(backendTestFiles)
-                                        //                 .pipe(plumber())
-                                        //                 .pipe(mocha());
-                                        // });
+
+
+
+
+
+//--API Test-----------------------------------------------------------------------
+var mocha = require('gulp-mocha');
+gulp.task('test-backend', function () {
+    return gulp.src(backendTestFiles)
+                .pipe(plumber())
+                .pipe(mocha());
+});
 
                                         // //--Backend-Test Coverage Reports---------------------------------------------------
                                         // var istanbul = require('gulp-istanbul');
